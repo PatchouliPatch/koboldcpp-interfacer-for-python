@@ -101,8 +101,6 @@ class phi3_interfacer(koboldcpp_interfacer):
             "role":"user",
             "content":prompt
         }])
-        
-
 
     def chat_inference(self, back_and_forth: list, add_assistant_prompt = True, debug = False):
 
