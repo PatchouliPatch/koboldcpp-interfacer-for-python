@@ -150,3 +150,75 @@ class phi3_interfacer(koboldcpp_interfacer):
         
         if debug: print(context_length)
         return final_str
+    
+class llama3_interfacer(koboldcpp_interfacer):
+
+    """
+    WORK IN PROGRESS
+    """
+
+    def __init__(self, url = "http://127.0.0.1:5001",
+                max_context_length = 8000, max_length = 1000,
+                prompt = "test prompt", quiet = False, rep_pen = 1.1,
+                rep_pen_range = 256, rep_pen_slope = 1, temperature = 0.5,
+                tfs = 1, top_a = 0, top_k = 100, top_p = 0.9, typical = 1):
+        
+        super().__init__(url, max_context_length, max_length, prompt, quiet,
+                         rep_pen, rep_pen_range, rep_pen_slope, temperature,
+                         tfs, top_a, top_k, top_p, typical)
+        
+    def single_inference(self, prompt: str):
+        
+        return self.chat_inference([{
+            "role":"user",
+            "content":prompt
+        }])
+
+    def chat_inference(self, back_and_forth: list, add_assistant_prompt = True, debug = False):
+
+        for_inference = self.apply_phi3_format_list_of_entries(back_and_forth)
+        if add_assistant_prompt: for_inference += '\n<|assistant|>'
+        if debug:
+            print('================================')
+            print(for_inference)
+            print('================================')
+        return self.generate_reply(for_inference)
+
+    def apply_phi3_format_str(self, prompt: str, role: str, prompt_assistant = True):
+
+        if role == 'user':
+
+            ret = f"<|user|>\n{prompt}<|end|>"
+
+        elif role == 'assistant':
+
+            ret = f"<|assistant|>\n{prompt}<|end|>"
+
+        #if not role != 'assistant': ret += "\n<|assistant|>"
+
+        return ret
+
+    def apply_phi3_format_list_of_entries(self, prompt_list: list, debug = False):
+
+        final_str = ""
+        context_length = 1
+        plist = copy.deepcopy(prompt_list)
+        plist.reverse() # newest first, always
+
+        for s in plist:
+            
+            to_add = self.apply_phi3_format_str(s['content'], s['role'])
+            ctx_len = self.tokenize(to_add)[1]['value'] - 1
+
+            if ctx_len + context_length <= self.payload_template['max_length']: 
+
+                final_str = to_add + '\n' + final_str
+                context_length += ctx_len
+
+            else:
+                break
+        
+        final_str = final_str.strip()
+        
+        if debug: print(context_length)
+        return final_str
