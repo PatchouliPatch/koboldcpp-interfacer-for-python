@@ -128,7 +128,7 @@ class phi3_interfacer(koboldcpp_interfacer):
 
         return ret
 
-    def apply_phi3_format_list_of_entries(self, prompt_list: list, add_assistant_prompt = True):
+    def apply_phi3_format_list_of_entries(self, prompt_list: list, debug = False):
 
         final_str = ""
         context_length = 1
@@ -150,5 +150,5 @@ class phi3_interfacer(koboldcpp_interfacer):
         
         final_str = final_str.strip()
         
-        print(context_length)
+        if debug: print(context_length)
         return final_str
